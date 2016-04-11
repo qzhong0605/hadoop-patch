@@ -1,0 +1,55 @@
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/tools/erasurecode/ECCli.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/tools/erasurecode/ECCli.java
+index c7ce714..28a9091 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/tools/erasurecode/ECCli.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/tools/erasurecode/ECCli.java
+@@ -19,6 +19,7 @@
+ import org.apache.hadoop.classification.InterfaceAudience;
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.fs.FsShell;
++import org.apache.hadoop.fs.shell.Command;
+ import org.apache.hadoop.fs.shell.CommandFactory;
+ import org.apache.hadoop.hdfs.HdfsConfiguration;
+ import org.apache.hadoop.util.ToolRunner;
+@@ -39,7 +40,15 @@ protected String getUsagePrefix() {
+ 
+   @Override
+   protected void registerCommands(CommandFactory factory) {
++    // `usage` command is similar with `help` command for `erasurecode`
++    // remove the `usage` command
++    Command help = factory.getInstance("-help");
++    if (help != null){
++      factory = new CommandFactory(getConf());
++      factory.addObject(help, "-help");
++    }
+     factory.registerCommands(ECCommand.class);
++    this.commandFactory = factory;
+   }
+ 
+   public static void main(String[] args) throws Exception {
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/resources/testErasureCodingConf.xml b/hadoop-hdfs-project/hadoop-hdfs/src/test/resources/testErasureCodingConf.xml
+index fd7cf9d..43eca5f 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/resources/testErasureCodingConf.xml
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/resources/testErasureCodingConf.xml
+@@ -31,6 +31,22 @@
+            -->
+   <tests>
+ 
++  <!-- Test usage options -->
++    <test>
++      <description>usage: help for erasure coding command</description>
++      <test-commands>
++        <ec-admin-command>-usage</ec-admin-command>
++      </test-commands>
++      <cleanup-commands>
++      </cleanup-commands>
++      <comparators>
++        <comparator>
++          <type>SubstringComparator</type>
++          <expected-output>-usage: Unknown command</expected-output>
++        </comparator>
++      </comparators>
++    </test>
++
+   <!-- Test help options -->
+     <test>
+       <description>help: help for erasure coding command</description>
